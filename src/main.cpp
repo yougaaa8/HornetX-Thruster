@@ -1,9 +1,14 @@
 #include <Arduino.h>
 #include "thruster_can.h"
+#include "Sense_can.h"
 #include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_INA219.h>
 
 thrusterCAN can;
 HardwareSerial serial(PA10, PA9, NC, NC);
+
+Adafruit_INA219 ina219;
 
 Servo thruster1;
 Servo thruster2;
@@ -18,6 +23,13 @@ int PWM_signal = 1500;
 
 int pins[] = {PA0, PA1, PA2, PA3, PA6, PA7, PB0};
 
+Sense_can CAN;
+CAN.Setup_can(500 * 1000);
+
+float voltCurr[2] = {9, 9}; // Power monitoring
+float voltage = 0;
+float current = 0;
+
 int mapToPWM(int input)
 {
 
@@ -27,8 +39,8 @@ int mapToPWM(int input)
 
   if (input <= 127)
   {
-    // Forward thrust (0 maps to PWM_CENTER, 127 maps to PWM_MAX)
-    return PWM_CENTER + (input * (PWM_MAX - PWM_CENTER)) / 127;
+    // Forward thrust (127 maps to PWM_CENTER, 0 maps to PWM_MAX)
+    return PWM_CENTER + ((127 - input) * (PWM_MAX - PWM_CENTER)) / 127;
   }
   else
   {
@@ -42,6 +54,8 @@ void setup()
   serial.begin(9600);
   can.begin();
   serial.println("CAN initialized");
+  ina219.begin();
+  serial.println("I2C initialized");
   for (int i = 0; i < 7; i++)
   {
     thrusters[i]->attach(pins[i]);
@@ -54,6 +68,7 @@ void setup()
 void loop()
 {
   uint8_t rxData[8];
+
   if (can.receive_speeds(rxData))
   {
     serial.println("Data received");
@@ -61,10 +76,16 @@ void loop()
     for (int i = 0; i < 7; i += 1)
     {
       serial.printf("thruster %d speed: %u\n", i, rxData[i]);
-      thrusters[i]->writeMicroseconds(mapToPWM(rxData[0]));
+      serial.printf("\nPWM microseconds: %i \n", mapToPWM(rxData[i]));
+      thrusters[i]->writeMicroseconds(mapToPWM(rxData[i]));
     }
 
-    can.transmit_heartbeat();
-    serial.println("");
+    // Send voltage and current data to SBC
+    voltage = ina219.getBusVoltage_V();
+    voltCurr[0] = voltage;
+    current = ina219.getCurrent_mA();
+    voltCurr[1] = current;
+
+    CAN.send2data(voltCurr, 0x21);
   }
 }
