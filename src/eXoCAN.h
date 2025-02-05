@@ -6,7 +6,7 @@ vers 1.0.1  02/06/2021
 vers 1.0.3  04/15/2021
 
 'eXoCAN' is working as a struck in the original 'eXoCAN.h' file
-now working as a 'class'.  
+now working as a 'class'.
 C:\Users\jhe\Documents\PlatformIO\Projects\eXoCanInt\lib\eXoCAN
 
   // ******* FILTERS Index Rules ************
@@ -24,7 +24,7 @@ constructor now does all the setup                                              
 */
 #include <arduino.h>
 
-//Register addresses
+// Register addresses
 constexpr static uint32_t CANBase = 0x40006400;
 
 constexpr static uint32_t mcr = CANBase + 0x000;  // master cntrl
@@ -49,7 +49,7 @@ constexpr static uint32_t rdh0r = CANBase + 0x1BC; // rx fifo data high
 constexpr static uint32_t fmr = CANBase + 0x200;   // filter master reg
 constexpr static uint32_t fm1r = CANBase + 0x204;  // filter mode reg
 constexpr static uint32_t fs1r = CANBase + 0x20C;  // filter scale reg, 16/32 bits
-constexpr static uint32_t ffa1r = CANBase + 0x214; //filter FIFO assignment
+constexpr static uint32_t ffa1r = CANBase + 0x214; // filter FIFO assignment
 constexpr static uint32_t fa1r = CANBase + 0x21C;  // filter activation reg
 constexpr static uint32_t fr1 = CANBase + 0x240;   // id/mask acceptance reg1
 constexpr static uint32_t fr2 = CANBase + 0x244;   // id/mask acceptance reg2
@@ -119,21 +119,21 @@ enum idtype : bool
   EXT_ID_LEN
 };
 
-union MSG {
+union MSG
+{
   uint8_t bytes[8] = {0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0xff};
   int16_t int16[4];
   int32_t int32[2];
   int64_t int64;
-  float data_float[2];
 };
 
 struct msgFrm
 {
-  int txMsgID = 0x68; //volatile
+  int txMsgID = 0x68; // volatile
   idtype idLen = STD_ID_LEN;
   uint8_t txMsgLen = 0x08;
   MSG txMsg;
-  //uint8_t txMsg[8];
+  // uint8_t txMsg[8];
   BusType busConfig = PORTA_11_12_XCVR;
   uint32_t txDly = 5000;
 };
@@ -144,12 +144,14 @@ private:
   idtype _extIDs = STD_ID_LEN;
   idtype _rxExtended;
   void filter16Init(int bank, int mode, int a = 0, int b = 0, int c = 0, int d = 0); // 16b filters
-  void filter32Init(int bank, int mode, u_int32_t a, u_int32_t b);                   //32b filters
+  void filter32Init(int bank, int mode, u_int32_t a, u_int32_t b);                   // 32b filters
 
 protected:
 public:
-  eXoCAN(idtype addrType = STD_ID_LEN, int brp = BR125K, BusType hw = PORTA_11_12_XCVR) 
-    {begin(addrType, brp, hw);}
+  eXoCAN(idtype addrType = STD_ID_LEN, int brp = BR125K, BusType hw = PORTA_11_12_XCVR)
+  {
+    begin(addrType, brp, hw);
+  }
   void begin(idtype addrType = STD_ID_LEN, int brp = BR125K, BusType hw = PORTA_11_12_XCVR);
   void begin(idtype addrType, int brp, bool singleWire, bool alt, bool pullup);
   void enableInterrupt();
@@ -159,7 +161,7 @@ public:
   void filterMask32Init(int bank, u_int32_t id = 0, u_int32_t mask = 0);
   void filterList32Init(int bank, u_int32_t idA = 0, u_int32_t idB = 0); // 32b filters
   bool transmit(int txId, const void *ptr, unsigned int len);
-  //int receive(volatile int *id, volatile int *fltrIdx, volatile void *pData);
+  // int receive(volatile int *id, volatile int *fltrIdx, volatile void *pData);
   int receive(volatile int &id, volatile int &fltrIdx, volatile uint8_t pData[]);
   void attachInterrupt(void func());
   bool getSilentMode() { return MMIO32(btr) >> 31; }
@@ -174,11 +176,11 @@ public:
   // uint8_t rxFull = 0;
   // uint8_t rxOverflow = 0;
 
-  uint8_t getRxMsgFifo0Cnt() {return MMIO32(rf0r) & (3 << 0);} //num of msgs
-  uint8_t getRxMsgFifo0Full() {return MMIO32(rf0r) & (1 << 3);}
-  uint8_t getRxMsgFifo0Overflow() {return MMIO32(rf0r) & (1 << 4);} // b4
+  uint8_t getRxMsgFifo0Cnt() { return MMIO32(rf0r) & (3 << 0); } // num of msgs
+  uint8_t getRxMsgFifo0Full() { return MMIO32(rf0r) & (1 << 3); }
+  uint8_t getRxMsgFifo0Overflow() { return MMIO32(rf0r) & (1 << 4); } // b4
 
   volatile int rxMsgLen = -1; // CAN parms
   volatile int id, fltIdx;
-  volatile MSG rxData;  // was uint8_t 
+  volatile MSG rxData; // was uint8_t
 };

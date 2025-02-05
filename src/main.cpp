@@ -76,9 +76,9 @@ void loop()
     }
 
     // Send voltage and current data to SBC
-    message.data_float[0] = ina219.getBusVoltage_V();
-    message.data_float[1] = ina219.getCurrent_mA();
+    voltCurr[0] = ina219.getBusVoltage_V();
+    voltCurr[1] = ina219.getCurrent_mA();
 
-    can.transmit(0x21, message, 2);
+    can.transmit(0x21, voltCurr, 2);
   }
 }
