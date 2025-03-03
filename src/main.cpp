@@ -28,19 +28,20 @@ MSG message;
 int mapToPWM(int input)
 {
 
-  const int PWM_CENTER = 1500;
-  const int PWM_MIN = 1350;
-  const int PWM_MAX = 1650;
+  const int PWM_CENTER_REVERSE = 1472;
+  const int PWM_CENTER_FORWARD = 1532;
+  const int PWM_MIN = 1100;
+  const int PWM_MAX = 1900;
 
   if (input <= 127)
   {
     // Forward thrust (127 maps to PWM_CENTER, 0 maps to PWM_MAX)
-    return PWM_CENTER + ((127 - input) * (PWM_MAX - PWM_CENTER)) / 127;
+    return PWM_CENTER_FORWARD + ((127 - input) * (PWM_MAX - PWM_CENTER_FORWARD)) / 127;
   }
   else
   {
     // Reverse thrust (128 maps to PWM_CENTER, 255 maps to PWM_MIN)
-    return PWM_CENTER - ((input - 128) * (PWM_CENTER - PWM_MIN)) / 127;
+    return PWM_CENTER_REVERSE - ((input - 128) * (PWM_CENTER_REVERSE - PWM_MIN)) / 127;
   }
 }
 
